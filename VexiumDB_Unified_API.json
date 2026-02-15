@@ -39,7 +39,7 @@
                 "dataType": "string",
                 "value1": "={{ $json.query.action || $json.body.action }}",
                 "rules": {
-                    "parameters": [
+                    "rules": [
                         {
                             "value2": "stats",
                             "output": 0
@@ -123,7 +123,7 @@
                 }
             },
             "type": "n8n-nodes-base.respondToWebhook",
-            "typeVersion": 1,
+            "typeVersion": 1.1,
             "position": [
                 1000,
                 0
