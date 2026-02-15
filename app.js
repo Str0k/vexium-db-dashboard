@@ -14,6 +14,7 @@ const state = {
     currentColumns: [],
     filteredData: null,
     activePlatform: 'all',
+    contactsMap: {},
 };
 
 function getApiBase() {
@@ -230,6 +231,23 @@ async function loadTableData(tableName) {
         state.currentData = rows;
         state.filteredData = null;
         state.activePlatform = 'all';
+
+        // Load contacts map for name display (if viewing chat histories)
+        if (tableName === 'n8n_chat_histories') {
+            try {
+                const contactsData = await apiCall('data', 'GET', { table: 'contacts' });
+                const contacts = Array.isArray(contactsData) ? contactsData : [contactsData];
+                state.contactsMap = {};
+                contacts.forEach(c => {
+                    if (c.session_id && c.display_name && c.display_name !== 'Cliente') {
+                        state.contactsMap[c.session_id] = c.display_name;
+                    }
+                });
+            } catch (e) {
+                // contacts table may not exist yet, that's OK
+                state.contactsMap = {};
+            }
+        }
 
         renderDataGrid(columns, rows);
         document.getElementById('rowCount').textContent = `${rows.length} rows`;
@@ -966,6 +984,8 @@ function formatFriendlyDate(value) {
 }
 
 function formatSessionId(sid) {
+    const name = state.contactsMap[sid];
+
     if (sid.startsWith('+')) {
         // WhatsApp — format phone number
         const formatted = formatPhoneNumber(sid);
@@ -973,10 +993,16 @@ function formatSessionId(sid) {
     }
     if (sid.startsWith('messenger_')) {
         const id = sid.replace('messenger_', '');
+        if (name) {
+            return `<span class="session-badge session-msg">🔵</span> ${escapeHtml(name)} <span class="session-id-num">#${escapeHtml(id)}</span>`;
+        }
         return `<span class="session-badge session-msg">🔵</span> Messenger <span class="session-id-num">#${escapeHtml(id)}</span>`;
     }
     if (sid.startsWith('instagram_')) {
         const id = sid.replace('instagram_', '');
+        if (name) {
+            return `<span class="session-badge session-ig">🟣</span> ${escapeHtml(name)} <span class="session-id-num">#${escapeHtml(id)}</span>`;
+        }
         return `<span class="session-badge session-ig">🟣</span> Instagram <span class="session-id-num">#${escapeHtml(id)}</span>`;
     }
     return escapeHtml(sid);
