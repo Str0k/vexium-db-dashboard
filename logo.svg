@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="vGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Outer V -->
+  <path d="M30 30 L100 170 L170 30" stroke="url(#vGrad)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  
+  <!-- Middle V -->
+  <path d="M50 40 L100 150 L150 40" stroke="url(#vGrad)" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  
+  <!-- Inner V -->
+  <path d="M68 50 L100 130 L132 50" stroke="url(#vGrad)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+  
+  <!-- Eye shape at bottom of V -->
+  <path d="M82 105 Q100 125 118 105" stroke="url(#eyeGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M82 105 Q100 85 118 105" stroke="url(#eyeGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#glow)"/>
+  
+  <!-- Eye pupil -->
+  <circle cx="100" cy="105" r="5" fill="url(#eyeGrad)" filter="url(#glow)"/>
+  <circle cx="100" cy="105" r="2" fill="white" opacity="0.9"/>
+</svg>
