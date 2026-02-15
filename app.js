@@ -21,22 +21,42 @@ function getApiBase() {
 // ==========================================
 // API LAYER
 // ==========================================
-async function apiCall(endpoint, method = 'GET', body = null) {
-    const url = `${getApiBase()}/${endpoint}`;
+// ==========================================
+// API LAYER
+// ==========================================
+async function apiCall(action, method = 'GET', body = {}) {
+    // Si el usuario pone la URL completa con parámetros, la limpiamos
+    let baseUrl = getApiBase().split('?')[0];
+
+    // Construimos la URL unificada
+    // Siempre usamos la misma URL base, y pasamos 'action' como parámetro query string o body
+    const url = new URL(baseUrl);
+    url.searchParams.set('action', action);
+
+    // Si es GET, añadimos los params del body a la URL también (para selects simples)
+    if (method === 'GET' && body && typeof body === 'object') {
+        Object.keys(body).forEach(key => url.searchParams.set(key, body[key]));
+    }
+
     const opts = {
         method,
         headers: { 'Content-Type': 'application/json' },
     };
-    if (body) opts.body = JSON.stringify(body);
+
+    if (method !== 'GET') {
+        // En POST, enviamos la acción también en el body por si acaso
+        body.action = action;
+        opts.body = JSON.stringify(body);
+    }
 
     try {
-        const res = await fetch(url, opts);
+        const res = await fetch(url.toString(), opts);
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         const data = await res.json();
         updateConnectionStatus(true);
         return data;
     } catch (err) {
-        console.error(`API Error [${endpoint}]:`, err);
+        console.error(`API Error [${action}]:`, err);
         updateConnectionStatus(false);
         throw err;
     }
@@ -82,7 +102,7 @@ function toggleSidebar() {
 // ==========================================
 async function refreshDashboard() {
     try {
-        const data = await apiCall('db-stats');
+        const data = await apiCall('stats');
         if (Array.isArray(data)) {
             const stats = data[0] || data;
             document.getElementById('totalTables').textContent = stats.total_tables || '0';
@@ -105,7 +125,7 @@ async function refreshDashboard() {
 
 async function loadTablesOverview() {
     try {
-        const data = await apiCall('db-tables');
+        const data = await apiCall('tables');
         const tables = Array.isArray(data) ? data : [data];
         state.tables = tables;
 
@@ -147,7 +167,7 @@ function viewTable(name) {
 // ==========================================
 async function loadTablesList() {
     try {
-        const data = await apiCall('db-tables');
+        const data = await apiCall('tables');
         const tables = Array.isArray(data) ? data : [data];
         state.tables = tables;
 
@@ -184,7 +204,7 @@ async function loadTableData(tableName) {
 
     try {
         // Load columns
-        const colData = await apiCall(`db-columns?table=${tableName}`);
+        const colData = await apiCall('columns', 'GET', { table: tableName });
         const columns = Array.isArray(colData) ? colData : [colData];
         state.currentColumns = columns;
 
@@ -203,7 +223,7 @@ async function loadTableData(tableName) {
         `).join('');
 
         // Load data
-        const rowData = await apiCall(`db-data?table=${tableName}`);
+        const rowData = await apiCall('data', 'GET', { table: tableName });
         const rows = Array.isArray(rowData) ? rowData : [rowData];
         state.currentData = rows;
 
@@ -259,7 +279,7 @@ async function executeQuery() {
     const startTime = performance.now();
 
     try {
-        const data = await apiCall('db-query', 'POST', { query: sql });
+        const data = await apiCall('query', 'POST', { query: sql });
         const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
 
         const rows = Array.isArray(data) ? data : [data];
@@ -343,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 async function loadTableBrowser() {
     try {
-        const data = await apiCall('db-schema');
+        const data = await apiCall('schema');
         const schema = Array.isArray(data) ? data : [data];
 
         // Group by table
@@ -398,7 +418,7 @@ function insertColumnToEditor(table, column) {
 // ==========================================
 async function loadSchema() {
     try {
-        const data = await apiCall('db-schema');
+        const data = await apiCall('schema');
         const schema = Array.isArray(data) ? data : [data];
 
         const grouped = {};
@@ -595,7 +615,7 @@ async function createTable() {
     if (!columns.length) { showToast('Add at least one column', 'error'); return; }
 
     try {
-        await apiCall('db-create-table', 'POST', { table_name: name, columns });
+        await apiCall('create_table', 'POST', { table_name: name, columns });
         showToast(`Table "${name}" created!`, 'success');
         closeModal();
         refreshDashboard();
@@ -612,7 +632,7 @@ async function insertRow() {
     });
 
     try {
-        await apiCall('db-insert', 'POST', { table_name: state.currentTable, data });
+        await apiCall('insert', 'POST', { table_name: state.currentTable, data });
         showToast('Row inserted!', 'success');
         closeModal();
         loadTableData(state.currentTable);
@@ -637,7 +657,7 @@ async function updateRow() {
     const whereId = oldRow.id ?? oldRow[state.currentColumns[0].column_name];
 
     try {
-        await apiCall('db-update', 'POST', {
+        await apiCall('update', 'POST', {
             table_name: state.currentTable,
             data,
             where: { column: idCol ? 'id' : state.currentColumns[0].column_name, value: whereId }
@@ -658,7 +678,7 @@ async function deleteRow(idx) {
     if (!confirm(`Are you sure you want to delete this row (${idCol ? 'id' : state.currentColumns[0].column_name}=${whereVal})?`)) return;
 
     try {
-        await apiCall('db-delete', 'POST', {
+        await apiCall('delete', 'POST', {
             table_name: state.currentTable,
             where: { column: idCol ? 'id' : state.currentColumns[0].column_name, value: whereVal }
         });
@@ -677,7 +697,7 @@ function confirmDropTable(name) {
 
 async function dropTable(name) {
     try {
-        await apiCall('db-drop-table', 'POST', { table_name: name });
+        await apiCall('drop_table', 'POST', { table_name: name });
         showToast(`Table "${name}" dropped!`, 'success');
         refreshDashboard();
         loadSchema();
@@ -694,7 +714,7 @@ async function addColumn() {
     if (!colName) { showToast('Enter column name', 'error'); return; }
 
     try {
-        await apiCall('db-add-column', 'POST', { table_name: table, column_name: colName, column_type: colType });
+        await apiCall('add_column', 'POST', { table_name: table, column_name: colName, column_type: colType });
         showToast(`Column "${colName}" added to "${table}"!`, 'success');
         closeModal();
         loadSchema();
