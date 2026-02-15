@@ -277,7 +277,12 @@ function renderDataGrid(columns, rows) {
 
     tbody.innerHTML = rows.map((row, idx) => `
         <tr>
-            ${colNames.map(c => `<td title="${escapeHtml(String(row[c] ?? ''))}">${escapeHtml(truncate(String(row[c] ?? ''), 80))}</td>`).join('')}
+            ${colNames.map(c => {
+        const raw = row[c];
+        const display = formatCellValue(raw, c);
+        const tooltip = escapeHtml(typeof raw === 'object' && raw !== null ? JSON.stringify(raw) : String(raw ?? ''));
+        return `<td title="${tooltip}">${display}</td>`;
+    }).join('')}
             <td class="actions-cell">
                 <button class="btn-icon" title="Edit" onclick="editRow(${idx})">✏️</button>
                 <button class="btn-icon danger" title="Delete" onclick="deleteRow(${idx})">🗑</button>
@@ -905,6 +910,108 @@ function truncate(str, max) {
 
 function formatNumber(n) {
     return new Intl.NumberFormat().format(n);
+}
+
+// --- Smart Cell Formatting ---
+function formatCellValue(value, columnName) {
+    if (value === null || value === undefined) return '<span style="color:var(--text-muted)">null</span>';
+
+    // Format dates
+    if (isDateColumn(columnName, value)) {
+        return formatFriendlyDate(value);
+    }
+
+    // Format session_id
+    if (columnName === 'session_id') {
+        return formatSessionId(String(value));
+    }
+
+    // Format JSON objects (like message column)
+    if (typeof value === 'object' && value !== null) {
+        return formatMessageObject(value);
+    }
+
+    return escapeHtml(truncate(String(value), 80));
+}
+
+function isDateColumn(colName, value) {
+    const dateColumns = ['created_at', 'updated_at', 'deleted_at', 'timestamp', 'date', 'last_message_at', 'fecha'];
+    if (dateColumns.some(d => colName.toLowerCase().includes(d))) return true;
+    // Also detect ISO date strings
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return true;
+    return false;
+}
+
+function formatFriendlyDate(value) {
+    try {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return escapeHtml(String(value));
+
+        const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+
+        const dateStr = `${day} ${month} ${year}`;
+        const timeStr = `${hours}:${minutes} ${ampm}`;
+
+        return `<span class="cell-date">${dateStr}, <span class="cell-time">${timeStr}</span></span>`;
+    } catch {
+        return escapeHtml(String(value));
+    }
+}
+
+function formatSessionId(sid) {
+    if (sid.startsWith('+')) {
+        // WhatsApp — format phone number
+        const formatted = formatPhoneNumber(sid);
+        return `<span class="session-badge session-wa">🟢</span> ${escapeHtml(formatted)}`;
+    }
+    if (sid.startsWith('messenger_')) {
+        const id = sid.replace('messenger_', '');
+        return `<span class="session-badge session-msg">🔵</span> Messenger <span class="session-id-num">#${escapeHtml(id)}</span>`;
+    }
+    if (sid.startsWith('instagram_')) {
+        const id = sid.replace('instagram_', '');
+        return `<span class="session-badge session-ig">🟣</span> Instagram <span class="session-id-num">#${escapeHtml(id)}</span>`;
+    }
+    return escapeHtml(sid);
+}
+
+function formatPhoneNumber(phone) {
+    // Format Mexican numbers: +529982404479 -> +52 998 240 4479
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+52') && cleaned.length >= 13) {
+        return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 9)} ${cleaned.slice(9)}`;
+    }
+    // Generic formatting for other numbers
+    if (cleaned.length > 8) {
+        return `${cleaned.slice(0, -10)} ${cleaned.slice(-10, -7)} ${cleaned.slice(-7, -4)} ${cleaned.slice(-4)}`;
+    }
+    return phone;
+}
+
+function formatMessageObject(obj) {
+    // n8n chat memory stores messages as {type, data: {content, ...}}
+    if (obj.data && obj.data.content) {
+        const type = obj.type === 'human' ? '👤' : '🤖';
+        const content = truncate(String(obj.data.content), 70);
+        return `${type} ${escapeHtml(content)}`;
+    }
+    // If it's an object with content directly
+    if (obj.content) {
+        return escapeHtml(truncate(String(obj.content), 70));
+    }
+    // Fallback: show first meaningful value
+    const keys = Object.keys(obj);
+    if (keys.length <= 3) {
+        return escapeHtml(truncate(JSON.stringify(obj), 80));
+    }
+    return `<span style="color:var(--text-muted)">{${keys.length} fields}</span>`;
 }
 
 // ==========================================
