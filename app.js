@@ -12,6 +12,8 @@ const state = {
     currentTable: null,
     currentData: [],
     currentColumns: [],
+    filteredData: null,
+    activePlatform: 'all',
 };
 
 function getApiBase() {
@@ -226,9 +228,32 @@ async function loadTableData(tableName) {
         const rowData = await apiCall('data', 'GET', { table: tableName });
         const rows = Array.isArray(rowData) ? rowData : [rowData];
         state.currentData = rows;
+        state.filteredData = null;
+        state.activePlatform = 'all';
 
         renderDataGrid(columns, rows);
         document.getElementById('rowCount').textContent = `${rows.length} rows`;
+
+        // Show filter bar and populate column select
+        document.getElementById('filterBar').style.display = 'block';
+        const filterCol = document.getElementById('filterColumn');
+        filterCol.innerHTML = '<option value="__all__">All Columns</option>';
+        columns.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.column_name;
+            opt.textContent = c.column_name;
+            filterCol.appendChild(opt);
+        });
+        // Default to session_id if available
+        if (columns.some(c => c.column_name === 'session_id')) {
+            filterCol.value = 'session_id';
+        }
+        // Reset filter UI
+        document.getElementById('filterSearch').value = '';
+        document.getElementById('filterClearBtn').style.display = 'none';
+        document.getElementById('filterResultCount').textContent = '';
+        document.querySelectorAll('.filter-chip').forEach(ch => ch.classList.remove('active'));
+        document.querySelector('.filter-chip[data-platform="all"]').classList.add('active');
 
     } catch (err) {
         showToast('Error loading table data: ' + err.message, 'error');
@@ -263,6 +288,98 @@ function renderDataGrid(columns, rows) {
 
 function refreshTableData() {
     if (state.currentTable) loadTableData(state.currentTable);
+}
+
+// ==========================================
+// SEARCH & FILTER
+// ==========================================
+let filterDebounce = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('filterSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(filterDebounce);
+            filterDebounce = setTimeout(applyFilter, 200);
+            document.getElementById('filterClearBtn').style.display = searchInput.value ? 'flex' : 'none';
+        });
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                clearFilter();
+            }
+        });
+    }
+    const filterCol = document.getElementById('filterColumn');
+    if (filterCol) {
+        filterCol.addEventListener('change', applyFilter);
+    }
+});
+
+function applyFilter() {
+    const searchTerm = document.getElementById('filterSearch').value.toLowerCase().trim();
+    const column = document.getElementById('filterColumn').value;
+    const platform = state.activePlatform;
+
+    if (!state.currentData.length || !state.currentColumns.length) return;
+
+    let rows = state.currentData;
+
+    // Platform filter (based on session_id patterns)
+    if (platform !== 'all') {
+        rows = rows.filter(row => {
+            const sessionId = String(row.session_id || '').toLowerCase();
+            if (platform === 'whatsapp') return sessionId.startsWith('+');
+            if (platform === 'messenger') return sessionId.startsWith('messenger_');
+            if (platform === 'instagram') return sessionId.startsWith('instagram_');
+            return true;
+        });
+    }
+
+    // Text search filter
+    if (searchTerm) {
+        rows = rows.filter(row => {
+            if (column === '__all__') {
+                return Object.values(row).some(val =>
+                    String(val ?? '').toLowerCase().includes(searchTerm)
+                );
+            } else {
+                return String(row[column] ?? '').toLowerCase().includes(searchTerm);
+            }
+        });
+    }
+
+    state.filteredData = rows;
+    renderDataGrid(state.currentColumns, rows);
+
+    // Update counts
+    const total = state.currentData.length;
+    const shown = rows.length;
+    if (searchTerm || platform !== 'all') {
+        document.getElementById('filterResultCount').textContent = `${shown} of ${total}`;
+        document.getElementById('rowCount').textContent = `${shown} rows (filtered)`;
+    } else {
+        document.getElementById('filterResultCount').textContent = '';
+        document.getElementById('rowCount').textContent = `${total} rows`;
+    }
+}
+
+function filterByPlatform(platform) {
+    state.activePlatform = platform;
+    document.querySelectorAll('.filter-chip').forEach(ch => ch.classList.remove('active'));
+    document.querySelector(`.filter-chip[data-platform="${platform}"]`).classList.add('active');
+    applyFilter();
+}
+
+function clearFilter() {
+    document.getElementById('filterSearch').value = '';
+    document.getElementById('filterClearBtn').style.display = 'none';
+    state.activePlatform = 'all';
+    document.querySelectorAll('.filter-chip').forEach(ch => ch.classList.remove('active'));
+    document.querySelector('.filter-chip[data-platform="all"]').classList.add('active');
+    state.filteredData = null;
+    renderDataGrid(state.currentColumns, state.currentData);
+    document.getElementById('filterResultCount').textContent = '';
+    document.getElementById('rowCount').textContent = `${state.currentData.length} rows`;
 }
 
 // ==========================================
