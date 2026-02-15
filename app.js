@@ -794,9 +794,16 @@ function formatNumber(n) {
 // INIT
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Save API URL to localStorage
+    // Load API URL from localStorage, but fix stale URLs missing the webhook path
+    const defaultUrl = document.getElementById('apiUrl').defaultValue;
     const saved = localStorage.getItem('vexium_api_url');
-    if (saved) document.getElementById('apiUrl').value = saved;
+    if (saved && saved.endsWith('/webhook/vexium-api')) {
+        document.getElementById('apiUrl').value = saved;
+    } else {
+        // Clear stale/incorrect saved URL and use the default
+        localStorage.removeItem('vexium_api_url');
+        document.getElementById('apiUrl').value = defaultUrl;
+    }
 
     document.getElementById('apiUrl').addEventListener('change', (e) => {
         localStorage.setItem('vexium_api_url', e.target.value);
