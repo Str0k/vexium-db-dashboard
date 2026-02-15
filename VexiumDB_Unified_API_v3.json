@@ -1,0 +1,823 @@
+{
+    "name": "VexiumDB Unified API",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "vexium-api",
+                "responseMode": "responseNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-trigger",
+            "name": "Webhook Gateway",
+            "webhookId": "vexium-api"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "stats",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "stats"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "tables",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "tables"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "columns",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "columns"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "data",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "data"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "schema",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "schema"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "query",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "query"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "create_table",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "create_table"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "insert",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "insert"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "update",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "update"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "delete",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "delete"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "drop_table",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "drop_table"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict"
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.query.action || $json.body.action }}",
+                                        "rightValue": "add_column",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "add_column"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                250,
+                0
+            ],
+            "id": "action-router",
+            "name": "Action Router"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1000,
+                0
+            ],
+            "id": "response-node",
+            "name": "Respond API"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public') as total_tables, (SELECT SUM(n_live_tup) FROM pg_stat_user_tables) as total_rows, (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='public') as total_columns, pg_size_pretty(pg_database_size(current_database())) as db_size;"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                -400
+            ],
+            "id": "pg-get-stats",
+            "name": "Get Stats",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT t.table_name, (SELECT count(*) FROM information_schema.columns c WHERE c.table_name = t.table_name AND c.table_schema = 'public') as column_count, COALESCE(s.n_live_tup, 0) as row_count FROM information_schema.tables t LEFT JOIN pg_stat_user_tables s ON t.table_name = s.relname WHERE t.table_schema = 'public' ORDER BY t.table_name;"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                -300
+            ],
+            "id": "pg-get-tables",
+            "name": "Get Tables",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "=SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{{ $json.query.table || $json.body.table }}' ORDER BY ordinal_position;"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                -200
+            ],
+            "id": "pg-get-columns",
+            "name": "Get Columns",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "=SELECT * FROM {{ $json.query.table || $json.body.table }} ORDER BY 1 DESC LIMIT 200;"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                -100
+            ],
+            "id": "pg-get-data",
+            "name": "Get Data",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT t.table_name, c.column_name, c.data_type, c.is_nullable, c.column_default FROM information_schema.tables t JOIN information_schema.columns c ON t.table_name = c.table_name AND t.table_schema = c.table_schema WHERE t.table_schema = 'public' ORDER BY t.table_name, c.ordinal_position;"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                0
+            ],
+            "id": "pg-get-schema",
+            "name": "Get Schema",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ $json.body.query }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                100
+            ],
+            "id": "pg-run-query",
+            "name": "Run Query",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ 'CREATE TABLE IF NOT EXISTS ' + $json.body.table_name + ' (' + $json.body.columns.map(c => c.name + ' ' + c.type).join(', ') + ');' }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                200
+            ],
+            "id": "pg-create-table",
+            "name": "Create Table",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ (() => { const d = $json.body.data; const keys = Object.keys(d); const vals = keys.map(k => \"'\" + String(d[k]).replace(/'/g, \"''\") + \"'\"); return 'INSERT INTO ' + $json.body.table_name + ' (' + keys.join(', ') + ') VALUES (' + vals.join(', ') + ');'; })() }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                300
+            ],
+            "id": "pg-insert-row",
+            "name": "Insert Row",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ (() => { const d = $json.body.data; const w = $json.body.where; const sets = Object.keys(d).filter(k => k !== w.column).map(k => k + \" = '\" + String(d[k]).replace(/'/g, \"''\") + \"'\"); return 'UPDATE ' + $json.body.table_name + ' SET ' + sets.join(', ') + \" WHERE \" + w.column + \" = '\" + String(w.value).replace(/'/g, \"''\") + \"';\"; })() }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                400
+            ],
+            "id": "pg-update-row",
+            "name": "Update Row",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ 'DELETE FROM ' + $json.body.table_name + \" WHERE \" + $json.body.where.column + \" = '\" + String($json.body.where.value).replace(/'/g, \"''\") + \"';\" }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                500
+            ],
+            "id": "pg-delete-row",
+            "name": "Delete Row",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ 'DROP TABLE IF EXISTS ' + $json.body.table_name + ';' }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                600
+            ],
+            "id": "pg-drop-table",
+            "name": "Drop Table",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "={{ 'ALTER TABLE ' + $json.body.table_name + ' ADD COLUMN ' + $json.body.column_name + ' ' + $json.body.column_type + ';' }}"
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.5,
+            "position": [
+                600,
+                700
+            ],
+            "id": "pg-add-column",
+            "name": "Add Column",
+            "credentials": {
+                "postgres": {
+                    "id": "SA63uR9JlxfgsmMU",
+                    "name": "Postgres account 2"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook Gateway": {
+            "main": [
+                [
+                    {
+                        "node": "Action Router",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Action Router": {
+            "main": [
+                [
+                    {
+                        "node": "Get Stats",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Get Tables",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Get Columns",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Get Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Get Schema",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Run Query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Create Table",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Insert Row",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Update Row",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Delete Row",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Drop Table",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Add Column",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Stats": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Tables": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Columns": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Data": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Schema": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Run Query": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Table": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Insert Row": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Row": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delete Row": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Drop Table": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Add Column": {
+            "main": [
+                [
+                    {
+                        "node": "Respond API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
