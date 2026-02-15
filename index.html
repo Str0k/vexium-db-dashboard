@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VexiumAI — Database Dashboard</title>
+    <meta name="description" content="Premium database administration dashboard by VexiumAI">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#grad)" stroke-width="2" fill="none" />
+                    <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#grad)" opacity="0.6" />
+                    <defs>
+                        <linearGradient id="grad" x1="0" y1="0" x2="28" y2="28">
+                            <stop stop-color="#00f0ff" />
+                            <stop offset="1" stop-color="#8b5cf6" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="logo-text">VexiumDB</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-view="tables" onclick="switchView('tables')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3C7 3 3 5 3 7v10c0 2 4 4 9 4s9-2 9-4V7c0-2-4-4-9-4z" />
+                    <path d="M3 12c0 2 4 4 9 4s9-2 9-4" />
+                    <path d="M3 7c0 2 4 4 9 4s9-2 9-4" />
+                </svg>
+                <span>Tables</span>
+            </button>
+            <button class="nav-item" data-view="query" onclick="switchView('query')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                    <line x1="14" y1="4" x2="10" y2="20" />
+                </svg>
+                <span>Query Editor</span>
+            </button>
+            <button class="nav-item" data-view="schema" onclick="switchView('schema')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                </svg>
+                <span>Schema</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="connection-status">
+                <div class="status-dot connected"></div>
+                <span>Connected</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <input type="text" placeholder="Search tables, columns..." id="globalSearch">
+                </div>
+                <div class="api-url-display">
+                    <label>API URL:</label>
+                    <input type="text" id="apiUrl" value="https://n8n.vexiumai.com/webhook" class="api-input"
+                        placeholder="https://your-n8n.com/webhook">
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard View -->
+        <div class="view active" id="view-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon cyan">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 3C7 3 3 5 3 7v10c0 2 4 4 9 4s9-2 9-4V7c0-2-4-4-9-4z" />
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalTables">—</span>
+                        <span class="stat-label">Total Tables</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 3h18v18H3z" />
+                            <path d="M3 9h18" />
+                            <path d="M3 15h18" />
+                            <path d="M9 3v18" />
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalRows">—</span>
+                        <span class="stat-label">Total Rows</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 2v20M2 12h20" />
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalColumns">—</span>
+                        <span class="stat-label">Total Columns</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="dbSize">—</span>
+                        <span class="stat-label">DB Size</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-grid">
+                <div class="glass-panel tables-panel">
+                    <div class="panel-header">
+                        <h2>📊 Tables Overview</h2>
+                        <button class="btn-glow btn-sm" onclick="openModal('createTable')">+ New Table</button>
+                    </div>
+                    <div class="panel-body" id="tablesOverview">
+                        <div class="loading-skeleton">
+                            <div class="skeleton-row"></div>
+                            <div class="skeleton-row"></div>
+                            <div class="skeleton-row"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel activity-panel">
+                    <div class="panel-header">
+                        <h2>⚡ Quick Actions</h2>
+                    </div>
+                    <div class="panel-body quick-actions">
+                        <button class="action-card" onclick="openModal('createTable')">
+                            <div class="action-icon cyan">＋</div>
+                            <span>Create Table</span>
+                        </button>
+                        <button class="action-card" onclick="switchView('query')">
+                            <div class="action-icon purple">▸</div>
+                            <span>Run Query</span>
+                        </button>
+                        <button class="action-card" onclick="exportAllData()">
+                            <div class="action-icon green">↓</div>
+                            <span>Export Data</span>
+                        </button>
+                        <button class="action-card" onclick="refreshDashboard()">
+                            <div class="action-icon orange">↻</div>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables View -->
+        <div class="view" id="view-tables">
+            <div class="tables-header">
+                <div class="table-selector">
+                    <label>Select Table:</label>
+                    <select id="tableSelect" onchange="loadTableData(this.value)">
+                        <option value="">— Choose a table —</option>
+                    </select>
+                </div>
+                <div class="table-actions">
+                    <button class="btn-glow btn-sm" onclick="openModal('insertRow')" id="btnInsertRow" disabled>+ Insert
+                        Row</button>
+                    <button class="btn-outline btn-sm" onclick="refreshTableData()" id="btnRefresh" disabled>↻
+                        Refresh</button>
+                </div>
+            </div>
+
+            <div class="glass-panel schema-info-panel" id="schemaInfoPanel" style="display:none;">
+                <div class="panel-header">
+                    <h2 id="selectedTableName">Table Schema</h2>
+                    <div class="schema-badges" id="schemaBadges"></div>
+                </div>
+                <div class="columns-grid" id="columnsGrid"></div>
+            </div>
+
+            <div class="glass-panel data-panel">
+                <div class="panel-header">
+                    <h2>📋 Data</h2>
+                    <div class="data-controls">
+                        <span class="row-count" id="rowCount">0 rows</span>
+                        <button class="btn-outline btn-xs" onclick="exportTableCSV()" id="btnExport" disabled>Export
+                            CSV</button>
+                    </div>
+                </div>
+                <div class="data-grid-wrapper">
+                    <table class="data-grid" id="dataGrid">
+                        <thead id="dataGridHead"></thead>
+                        <tbody id="dataGridBody">
+                            <tr>
+                                <td class="empty-state" colspan="100">Select a table to view data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query Editor View -->
+        <div class="view" id="view-query">
+            <div class="query-layout">
+                <div class="glass-panel query-editor-panel">
+                    <div class="panel-header">
+                        <h2>🖥️ SQL Query Editor</h2>
+                        <div class="editor-actions">
+                            <button class="btn-glow" onclick="executeQuery()" id="btnRunQuery">▶ Run Query</button>
+                            <button class="btn-outline btn-sm" onclick="formatSQL()">Format</button>
+                            <button class="btn-outline btn-sm" onclick="clearEditor()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div class="line-numbers" id="lineNumbers">1</div>
+                        <textarea id="sqlEditor" class="sql-editor" spellcheck="false"
+                            placeholder="-- Write your SQL query here...">-- Write your SQL query here
+SELECT * FROM n8n_chat_histories LIMIT 10;</textarea>
+                    </div>
+                    <div class="editor-status">
+                        <span id="queryStatus">Ready</span>
+                        <span id="queryTime"></span>
+                    </div>
+                </div>
+
+                <div class="glass-panel results-panel">
+                    <div class="panel-header">
+                        <h2>📊 Results</h2>
+                        <span class="result-count" id="resultCount"></span>
+                    </div>
+                    <div class="data-grid-wrapper">
+                        <table class="data-grid" id="resultsGrid">
+                            <thead id="resultsHead"></thead>
+                            <tbody id="resultsBody">
+                                <tr>
+                                    <td class="empty-state" colspan="100">Run a query to see results</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel query-sidebar">
+                <div class="panel-header">
+                    <h2>📂 Tables</h2>
+                </div>
+                <div class="table-browser" id="tableBrowser"></div>
+            </div>
+        </div>
+
+        <!-- Schema Manager View -->
+        <div class="view" id="view-schema">
+            <div class="schema-actions-bar">
+                <button class="btn-glow btn-sm" onclick="openModal('createTable')">+ New Table</button>
+                <button class="btn-outline btn-sm" onclick="loadSchema()">↻ Refresh Schema</button>
+            </div>
+            <div class="schema-grid" id="schemaGrid">
+                <div class="loading-skeleton">
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
