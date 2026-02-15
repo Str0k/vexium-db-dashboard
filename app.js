@@ -15,6 +15,7 @@ const state = {
     filteredData: null,
     activePlatform: 'all',
     contactsMap: {},
+    viewMode: 'conversations',
 };
 
 function getApiBase() {
@@ -249,8 +250,23 @@ async function loadTableData(tableName) {
             }
         }
 
-        renderDataGrid(columns, rows);
-        document.getElementById('rowCount').textContent = `${rows.length} rows`;
+        // Show/hide view toggle for chat histories
+        const viewToggle = document.getElementById('viewToggle');
+        if (tableName === 'n8n_chat_histories') {
+            viewToggle.style.display = 'flex';
+            state.viewMode = 'conversations';
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.view-btn[data-view="conversations"]').classList.add('active');
+            // Apply conversations view
+            const dedupedRows = getDeduplicatedRows(rows);
+            renderDataGrid(columns, dedupedRows);
+            document.getElementById('rowCount').textContent = `${dedupedRows.length} contacts`;
+        } else {
+            viewToggle.style.display = 'none';
+            state.viewMode = 'all';
+            renderDataGrid(columns, rows);
+            document.getElementById('rowCount').textContent = `${rows.length} rows`;
+        }
 
         // Show filter bar and populate column select
         document.getElementById('filterBar').style.display = 'block';
@@ -347,6 +363,11 @@ function applyFilter() {
 
     let rows = state.currentData;
 
+    // Apply conversations dedup first (if in conversations mode)
+    if (state.viewMode === 'conversations' && state.currentTable === 'n8n_chat_histories') {
+        rows = getDeduplicatedRows(rows);
+    }
+
     // Platform filter (based on session_id patterns)
     if (platform !== 'all') {
         rows = rows.filter(row => {
@@ -358,9 +379,13 @@ function applyFilter() {
         });
     }
 
-    // Text search filter
+    // Text search filter (also search by contact name)
     if (searchTerm) {
         rows = rows.filter(row => {
+            // Also check contactsMap for name search
+            const contactName = state.contactsMap[row.session_id] || '';
+            if (contactName.toLowerCase().includes(searchTerm)) return true;
+
             if (column === '__all__') {
                 return Object.values(row).some(val =>
                     String(val ?? '').toLowerCase().includes(searchTerm)
@@ -375,14 +400,16 @@ function applyFilter() {
     renderDataGrid(state.currentColumns, rows);
 
     // Update counts
-    const total = state.currentData.length;
+    const baseRows = state.viewMode === 'conversations' ? getDeduplicatedRows(state.currentData) : state.currentData;
+    const total = baseRows.length;
     const shown = rows.length;
+    const label = state.viewMode === 'conversations' ? 'contacts' : 'rows';
     if (searchTerm || platform !== 'all') {
         document.getElementById('filterResultCount').textContent = `${shown} of ${total}`;
-        document.getElementById('rowCount').textContent = `${shown} rows (filtered)`;
+        document.getElementById('rowCount').textContent = `${shown} ${label} (filtered)`;
     } else {
         document.getElementById('filterResultCount').textContent = '';
-        document.getElementById('rowCount').textContent = `${total} rows`;
+        document.getElementById('rowCount').textContent = `${total} ${label}`;
     }
 }
 
@@ -400,10 +427,46 @@ function clearFilter() {
     document.querySelectorAll('.filter-chip').forEach(ch => ch.classList.remove('active'));
     document.querySelector('.filter-chip[data-platform="all"]').classList.add('active');
     state.filteredData = null;
-    renderDataGrid(state.currentColumns, state.currentData);
+
+    const rows = state.viewMode === 'conversations' ? getDeduplicatedRows(state.currentData) : state.currentData;
+    renderDataGrid(state.currentColumns, rows);
     document.getElementById('filterResultCount').textContent = '';
-    document.getElementById('rowCount').textContent = `${state.currentData.length} rows`;
+    const label = state.viewMode === 'conversations' ? 'contacts' : 'rows';
+    document.getElementById('rowCount').textContent = `${rows.length} ${label}`;
 }
+
+// --- View Mode (Conversations / All) ---
+function getDeduplicatedRows(rows) {
+    // Group by session_id, keep the row with the highest id (most recent)
+    const map = {};
+    rows.forEach(row => {
+        const sid = row.session_id;
+        if (!sid) return;
+        if (!map[sid] || (row.id && row.id > map[sid].id)) {
+            map[sid] = row;
+        }
+    });
+    // Sort by id descending (most recent first)
+    return Object.values(map).sort((a, b) => (b.id || 0) - (a.id || 0));
+}
+
+function setViewMode(mode) {
+    state.viewMode = mode;
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.view-btn[data-view="${mode}"]`).classList.add('active');
+
+    // Re-apply current filters with new view mode
+    const searchTerm = document.getElementById('filterSearch').value.trim();
+    if (searchTerm || state.activePlatform !== 'all') {
+        applyFilter();
+    } else {
+        const rows = mode === 'conversations' ? getDeduplicatedRows(state.currentData) : state.currentData;
+        renderDataGrid(state.currentColumns, rows);
+        const label = mode === 'conversations' ? 'contacts' : 'rows';
+        document.getElementById('rowCount').textContent = `${rows.length} ${label}`;
+    }
+}
+
 
 // ==========================================
 // QUERY EDITOR

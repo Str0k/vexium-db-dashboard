@@ -263,6 +263,16 @@
                 <div class="panel-header">
                     <h2>📋 Data</h2>
                     <div class="data-controls">
+                        <div class="view-toggle" id="viewToggle" style="display:none;">
+                            <button class="view-btn active" data-view="conversations"
+                                onclick="setViewMode('conversations')" title="One row per contact">
+                                💬 Conversaciones
+                            </button>
+                            <button class="view-btn" data-view="all" onclick="setViewMode('all')"
+                                title="Full message history">
+                                📜 Todo
+                            </button>
+                        </div>
                         <span class="row-count" id="rowCount">0 rows</span>
                         <button class="btn-outline btn-xs" onclick="exportTableCSV()" id="btnExport" disabled>Export
                             CSV</button>
