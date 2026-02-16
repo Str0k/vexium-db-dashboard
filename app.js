@@ -4,6 +4,89 @@
    ======================================== */
 
 // ==========================================
+// AUTHENTICATION
+// ==========================================
+function getAuthToken() {
+    return sessionStorage.getItem('vexium_auth_token');
+}
+
+function setAuthToken(token) {
+    sessionStorage.setItem('vexium_auth_token', token);
+}
+
+function clearAuthToken() {
+    sessionStorage.removeItem('vexium_auth_token');
+}
+
+function isAuthenticated() {
+    return !!getAuthToken();
+}
+
+function showLogin() {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+function hideLogin() {
+    document.getElementById('loginOverlay').classList.add('hidden');
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    const btnText = btn.querySelector('.login-btn-text');
+    const spinner = btn.querySelector('.login-spinner');
+
+    // UI loading state
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btnText.textContent = 'Verificando...';
+    spinner.style.display = 'block';
+
+    try {
+        const baseUrl = getApiBase().split('?')[0];
+        const url = new URL(baseUrl);
+        url.searchParams.set('action', 'login');
+
+        const res = await fetch(url.toString(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', username, password }),
+        });
+
+        const data = await res.json();
+        // Handle both array and object responses from n8n
+        const result = Array.isArray(data) ? data[0] : data;
+
+        if (result && result.success && result.token) {
+            setAuthToken(result.token);
+            hideLogin();
+            showToast(`¡Bienvenido, ${result.user || username}! 🎉`, 'success');
+            refreshDashboard();
+        } else {
+            errorDiv.textContent = result?.message || 'Credenciales incorrectas';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        errorDiv.textContent = 'Error de conexión. Verifica la URL del API.';
+        errorDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Iniciar Sesión';
+        spinner.style.display = 'none';
+    }
+}
+
+function handleLogout() {
+    if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
+    clearAuthToken();
+    showLogin();
+    showToast('Sesión cerrada', 'info');
+}
+
+// ==========================================
 // CONFIG & STATE
 // ==========================================
 const state = {
@@ -33,30 +116,53 @@ async function apiCall(action, method = 'GET', body = {}) {
     let baseUrl = getApiBase().split('?')[0];
 
     // Construimos la URL unificada
-    // Siempre usamos la misma URL base, y pasamos 'action' como parámetro query string o body
     const url = new URL(baseUrl);
     url.searchParams.set('action', action);
 
-    // Si es GET, añadimos los params del body a la URL también (para selects simples)
+    // Si es GET, añadimos los params del body a la URL también
     if (method === 'GET' && body && typeof body === 'object') {
         Object.keys(body).forEach(key => url.searchParams.set(key, body[key]));
     }
 
-    const opts = {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-    };
+    const headers = { 'Content-Type': 'application/json' };
+
+    // Add auth token to every request
+    const token = getAuthToken();
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const opts = { method, headers };
 
     if (method !== 'GET') {
-        // En POST, enviamos la acción también en el body por si acaso
         body.action = action;
         opts.body = JSON.stringify(body);
     }
 
     try {
         const res = await fetch(url.toString(), opts);
+
+        // If 401/403, session expired — redirect to login
+        if (res.status === 401 || res.status === 403) {
+            clearAuthToken();
+            showLogin();
+            showToast('Sesión expirada. Inicia sesión de nuevo.', 'error');
+            throw new Error('No autorizado');
+        }
+
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
         const data = await res.json();
+
+        // Check if the API returned an auth error in the body
+        const result = Array.isArray(data) ? data[0] : data;
+        if (result && result.error === 'unauthorized') {
+            clearAuthToken();
+            showLogin();
+            showToast('Sesión expirada. Inicia sesión de nuevo.', 'error');
+            throw new Error('No autorizado');
+        }
+
         updateConnectionStatus(true);
         return data;
     } catch (err) {
@@ -1113,7 +1219,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved && saved.endsWith('/webhook/vexium-api')) {
         document.getElementById('apiUrl').value = saved;
     } else {
-        // Clear stale/incorrect saved URL and use the default
         localStorage.removeItem('vexium_api_url');
         document.getElementById('apiUrl').value = defaultUrl;
     }
@@ -1123,8 +1228,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('API URL updated', 'info');
     });
 
-    // Auto-load dashboard
-    refreshDashboard();
+    // AUTH CHECK: If user has a valid token, go to dashboard; otherwise show login
+    if (isAuthenticated()) {
+        hideLogin();
+        refreshDashboard();
+    } else {
+        showLogin();
+    }
 });
 
 // Keyboard shortcut
