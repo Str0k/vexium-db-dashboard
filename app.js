@@ -111,16 +111,16 @@ function getApiBase() {
 // ==========================================
 // API LAYER
 // ==========================================
-async function apiCall(action, method = 'GET', body = {}) {
+async function apiCall(action, method = 'POST', body = {}) {
     // Si el usuario pone la URL completa con parámetros, la limpiamos
     let baseUrl = getApiBase().split('?')[0];
 
-    // Construimos la URL unificada
+    // Construimos la URL unificada — siempre POST para compatibilidad con n8n multi-method webhook
     const url = new URL(baseUrl);
     url.searchParams.set('action', action);
 
-    // Si es GET, añadimos los params del body a la URL también
-    if (method === 'GET' && body && typeof body === 'object') {
+    // Enviamos también los params en la URL por si acaso
+    if (body && typeof body === 'object') {
         Object.keys(body).forEach(key => url.searchParams.set(key, body[key]));
     }
 
@@ -132,12 +132,13 @@ async function apiCall(action, method = 'GET', body = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const opts = { method, headers };
-
-    if (method !== 'GET') {
-        body.action = action;
-        opts.body = JSON.stringify(body);
-    }
+    // Siempre POST para que n8n lo procese por la misma salida del webhook
+    body.action = action;
+    const opts = {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+    };
 
     try {
         const res = await fetch(url.toString(), opts);
