@@ -1745,6 +1745,33 @@ body {
 }
 
 /* ========================================
+   SENDER BADGES (Cliente / Agente)
+   ======================================== */
+.badge-sender {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.badge-cliente {
+    background: rgba(0, 200, 255, 0.15);
+    color: #00c8ff;
+    border: 1px solid rgba(0, 200, 255, 0.3);
+}
+
+.badge-agente {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* ========================================
    LOGIN SCREEN
    ======================================== */
 .login-overlay {

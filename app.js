@@ -1194,9 +1194,12 @@ function formatPhoneNumber(phone) {
 function formatMessageObject(obj) {
     // n8n chat memory stores messages as {type, data: {content, ...}}
     if (obj.data && obj.data.content) {
-        const type = obj.type === 'human' ? '👤' : '🤖';
-        const content = truncate(String(obj.data.content), 70);
-        return `${type} ${escapeHtml(content)}`;
+        const isHuman = obj.type === 'human';
+        const badgeClass = isHuman ? 'badge-sender badge-cliente' : 'badge-sender badge-agente';
+        const badgeLabel = isHuman ? 'Cliente' : 'Agente';
+        const emoji = isHuman ? '👤' : '🤖';
+        const content = truncate(String(obj.data.content), 60);
+        return `<span class="${badgeClass}">${emoji} ${badgeLabel}</span> ${escapeHtml(content)}`;
     }
     // If it's an object with content directly
     if (obj.content) {
