@@ -72,7 +72,7 @@
                         {
                             "id": "auth-result",
                             "name": "authResult",
-                            "value": "={{ (() => { const u = $json.body.username; const p = $json.body.password; const VALID_USER = 'admin'; const VALID_PASS = 'VexiumAdmin2026!'; if (u === VALID_USER && p === VALID_PASS) { const token = 'vxm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 15); return JSON.stringify({ success: true, token: token, user: u, message: 'Autenticado correctamente' }); } else { return JSON.stringify({ success: false, token: null, message: 'Usuario o contraseña incorrectos' }); } })() }}",
+                            "value": "={{ (() => { const u = $json.body.username; const p = $json.body.password; const VALID_USER = 'ram'; const VALID_PASS = 'Viruzsilver4!'; if (u === VALID_USER && p === VALID_PASS) { const token = 'vxm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 15); return JSON.stringify({ success: true, token: token, user: u, message: 'Autenticado correctamente' }); } else { return JSON.stringify({ success: false, token: null, message: 'Usuario o contraseña incorrectos' }); } })() }}",
                             "type": "string"
                         }
                     ]
@@ -730,7 +730,7 @@
         },
         {
             "parameters": {
-                "content": "## 🔐 Authentication Flow\n\n1. Login request → Validate Login → Return token\n2. All other requests → Auth Valid? → If yes, proceed to Action Router\n3. If no token or invalid → Return 401 Unauthorized\n\n**Credentials:**\n- User: `admin`\n- Pass: `VexiumAdmin2026!`\n\n⚠️ Change these in the \"Validate Login\" node!",
+                "content": "## 🔐 Authentication Flow\n\n1. Login request → Validate Login → Return token\n2. All other requests → Auth Valid? → If yes, proceed to Action Router\n3. If no token or invalid → Return 401 Unauthorized\n\n**Credentials:**\n- User: `ram`\n- Pass: `Viruzsilver4!`\n\n⚠️ Change these in the \"Validate Login\" node!",
                 "height": 340,
                 "width": 380
             },
