@@ -1192,19 +1192,28 @@ function formatPhoneNumber(phone) {
 }
 
 function formatMessageObject(obj) {
-    // n8n chat memory stores messages as {type, data: {content, ...}}
-    if (obj.data && obj.data.content) {
-        const isHuman = obj.type === 'human';
+    if (!obj || typeof obj !== 'object') return obj;
+
+    // Handle different n8n message structures:
+    // Format 1: { type: "human"|"ai", content: "..." }
+    // Format 2: { type: "human"|"ai", data: { content: "..." } }
+    const type = obj.type || (obj.data && obj.data.type);
+    const content = obj.content || (obj.data && obj.data.content);
+
+    if (content && type) {
+        const isHuman = type === 'human';
         const badgeClass = isHuman ? 'badge-sender badge-cliente' : 'badge-sender badge-agente';
         const badgeLabel = isHuman ? 'Cliente' : 'Agente';
         const emoji = isHuman ? '👤' : '🤖';
-        const content = truncate(String(obj.data.content), 60);
-        return `<span class="${badgeClass}">${emoji} ${badgeLabel}</span> ${escapeHtml(content)}`;
+        const truncatedContent = truncate(String(content), 60);
+        return `<span class="${badgeClass}">${emoji} ${badgeLabel}</span> ${escapeHtml(truncatedContent)}`;
     }
-    // If it's an object with content directly
+
+    // Fallback for direct content without type
     if (obj.content) {
         return escapeHtml(truncate(String(obj.content), 70));
     }
+
     // Fallback: show first meaningful value
     const keys = Object.keys(obj);
     if (keys.length <= 3) {
